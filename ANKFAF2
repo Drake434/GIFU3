@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>D.I.V. · личное дело</title>
+<style>
+:root{--bg:#010a12;--p:#04182a;--fg:#9fe8ff;--dim:#3f8aa8;--acc:#29d3ff;--line:#0f4a6b;--inp:#021522;--red:#ff4d5e;--grn:#3dff8a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Courier New",monospace}
+[hidden]{display:none!important}
+input,select,textarea{background:var(--inp);color:var(--fg);border:1px solid var(--line);padding:6px 8px;font:inherit;border-radius:0;max-width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
+textarea{width:100%;resize:vertical}
+input[type=color]{padding:0;width:34px;height:24px;vertical-align:middle}
+button{background:none;color:var(--dim);border:1px solid var(--line);padding:4px 10px;font:inherit;font-size:13px;cursor:pointer;border-radius:0}
+button:hover,button.on{color:#001018;background:var(--acc);border-color:var(--acc)}
+#login{display:grid;place-items:center;min-height:100vh}
+#lf{display:grid;gap:10px;width:min(320px,90vw);padding:24px;border:1px solid var(--acc);background:var(--p);box-shadow:0 0 30px rgba(41,211,255,.22)}
+#lf h1{margin:0;font-size:16px}#err{color:var(--red);font-size:12px;min-height:1em}
+main{max-width:920px;margin:18px auto;padding:22px 22px 36px;min-height:640px;background:var(--p);border:1px solid var(--acc);box-shadow:0 0 30px rgba(41,211,255,.22);position:relative;overflow:hidden;clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
+main::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:30;background:radial-gradient(ellipse at center,transparent 65%,rgba(0,0,0,.4) 100%),repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px)}
+#boot{position:absolute;inset:0;z-index:20;background:var(--p);cursor:pointer;transition:opacity .6s}
+#boot.gone{opacity:0;pointer-events:none}#boot canvas{width:100%;height:100%;display:block}
+h1,h2{color:var(--acc);text-transform:uppercase;letter-spacing:2px;text-shadow:0 0 8px var(--acc)}
+.top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--dim);font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.top span{margin-right:auto}#sv{letter-spacing:0;text-transform:none}
+.head{display:grid;grid-template-columns:130px 1fr;gap:18px;align-items:start;margin:10px 0 14px}
+.portrait{border:1px solid var(--acc);aspect-ratio:3/4;position:relative;overflow:hidden;background:var(--inp)}
+.portrait svg{width:100%;height:100%}
+.portrait::after{content:"";position:absolute;left:0;right:0;height:3px;background:var(--acc);box-shadow:0 0 12px var(--acc);animation:scan 3s linear infinite}
+@keyframes scan{to{top:100%}}.portrait::after{top:0}
+.eye{animation:eye 5s infinite}@keyframes eye{0%,88%,100%{opacity:1}92%{opacity:.1}}
+.head h2{margin:2px 0 6px;font-size:26px}
+.led{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--grn);box-shadow:0 0 8px var(--grn)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px;overflow-x:auto}
+.eo,.tools{display:none}.ed .eo{display:block}.ed .ro{display:none}.ed .tools{display:flex}.ed .cl{display:block}
+.ed .keep{display:block!important}
+.tools{gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;font-size:12px}
+.tools details{flex:1 1 100%}.tools label{margin-right:10px;white-space:nowrap}
+.blk{margin:0 0 12px;padding:10px 12px;border:1px solid var(--cbd,var(--line));background:var(--cbg,transparent);color:var(--ctx,var(--fg))}
+.blk h3{margin:0;color:var(--cti,var(--acc));font-size:16px}
+.blk.sep{border:0;background:none;padding:2px 0}
+.pre{white-space:pre-wrap}
+dl{margin:0;display:grid;grid-template-columns:170px 1fr;gap:6px 14px}
+dt{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding-top:3px}dd{margin:0}
+.sep div{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:12px}
+.sep i{flex:1;height:1px;background:var(--line);box-shadow:0 3px 0 var(--line)}
+.ch{display:flex;gap:10px;align-items:center;margin-bottom:6px}.ch input{flex:1}
+.tg{display:inline-block;border:1px solid var(--ctg,var(--dim));color:var(--ctg,var(--dim));font-size:11px;padding:0 6px;margin:0 4px 6px 0}
+.cl{display:none}.cb{border-top:1px solid var(--line);padding-top:8px}
+.sw{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:center}
+.rad{width:100%;max-width:300px}.g{fill:none;stroke:var(--line)}.p{fill:rgba(41,211,255,.25);stroke:var(--acc);stroke-width:1.5}
+svg text{fill:var(--dim);font:9px "Courier New",monospace}
+.st{display:grid;grid-template-columns:110px 1fr 36px 62px;gap:8px;align-items:center;margin-bottom:6px;font-size:13px}
+.bar{letter-spacing:-1px;color:var(--acc);white-space:nowrap;overflow:hidden}.bar u{text-decoration:none;color:var(--line)}.bar.ov{color:var(--red)}
+.st b{text-align:right}.st em{font-style:normal;color:var(--dim)}
+.se{display:flex;gap:4px;margin-bottom:4px}.se input[type=number]{width:64px}.se input:first-child{flex:1;min-width:0}
+.cfg{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0;font-size:12px}.cfg input{width:70px}
+.add{margin-top:8px;font-size:12px}.add button{margin:0 4px 4px 0}
+@media(max-width:700px){.sw,.head,dl{grid-template-columns:1fr}main{margin:0}.portrait{max-width:130px}}
+@media(prefers-reduced-motion:reduce){*,::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="login" hidden><form id="lf"><h1>▌NT-OS · ДОСТУП</h1><input id="pw" type="password" placeholder="пароль" autocomplete="current-password"><button>Войти</button><div id="err"></div></form></div>
+<main id="app" hidden>
+  <div id="boot"><canvas id="cv"></canvas></div>
+  <div class="top"><span>NanoTrasen · база персонала</span><i id="sv"></i><button data-a="ed" id="edb">Правка</button><button data-a="out">Выйти</button></div>
+  <div class="head">
+    <div class="portrait"><svg viewBox="0 0 90 120"><circle cx="45" cy="42" r="20" fill="none" stroke="#29d3ff" stroke-width="1.5"/><path d="M10 118c2-26 16-36 35-36s33 10 35 36" fill="none" stroke="#29d3ff" stroke-width="1.5"/><circle class="eye" cx="38" cy="40" r="2.5" fill="#29d3ff"/><circle class="eye" cx="52" cy="40" r="2.5" fill="#29d3ff"/></svg></div>
+    <div><div style="color:var(--dim);font-size:12px">ДОСЬЕ // DEVAIT-10 :: ДОСТУП РАЗРЕШЁН</div>
+      <h2 class="ro" id="nm"></h2><input class="eo" data-h="nm" id="nmi">
+      <div class="ro"><i class="led"></i><span id="st"></span></div><input class="eo" data-h="st" id="sti"></div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="tab"></div>
+</main>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getDatabase,ref,onValue,set}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+const fb=initializeApp({apiKey:"AIzaSyBGh46wWig5a14tIG79aMC2fvy9KkBwlrM",authDomain:"farid-9ae00.firebaseapp.com",databaseURL:"https://farid-9ae00-default-rtdb.europe-west1.firebasedatabase.app",projectId:"farid-9ae00",appId:"1:660872956739:web:a082bc97ed2a2469b43df6"});
+const auth=getAuth(fb),db=getDatabase(fb),EMAIL="deivb@nt.com",$=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+// ---------- Данные по умолчанию (значения статов, замени в режиме правки) ----------
+const DEF=()=>({nm:"Дивайт",st:"Действует",tabs:[
+ {t:"Идентификация",blocks:[{t:"fields",tx:"Имя | Дивайт\nОбозначение | D.I.V. (DEVAIT)\nВерсия ИИ | 0.6\nОболочка | DEVAIT-10\nСоздатель | Дейв Белинс\nСтатус | Временный, по договору с NT\nПринадлежность | NanoTrasen, персональный договор\nМестоположение | Станция «Дельта»\nИнтересы | Растения, животные, экосистемы планет"}]},
+ {t:"Статы",blocks:[{t:"stats",mode:"cmp",max:30,it:[{n:"Сила",v:12},{n:"Ловкость",v:14},{n:"Телосложение",v:16},{n:"Интеллект",v:20},{n:"Мудрость",v:15},{n:"Харизма",v:11}]}]},
+ {t:"Снаряжение",blocks:[{t:"card",ti:"Пример карточки",tg:"тег, ещё тег",tx:"Здесь будет описание.",o:1}]}]});
+const NEW={text:()=>({t:"text",tx:""}),fields:()=>({t:"fields",tx:"Ключ | значение"}),card:()=>({t:"card",ti:"Карточка",tg:"тег",tx:"",o:1}),sep:()=>({t:"sep"}),stats:()=>({t:"stats",mode:"cmp",max:30,it:[{n:"Сила",v:10},{n:"Ловкость",v:10},{n:"Телосложение",v:10}]})};
+const NM={text:"текст",fields:"поля",card:"карточка",sep:"разделитель",stats:"статы"};
+const CD={bg:"#04182a",bd:"#0f4a6b",ti:"#29d3ff",tg:"#3f8aa8",tx:"#9fe8ff"},CL={bg:"Фон",bd:"Рамка",ti:"Заголовок",tg:"Тег",tx:"Текст"},CV={bg:"--cbg",bd:"--cbd",ti:"--cti",tg:"--ctg",tx:"--ctx"};
+let S=DEF(),ti=0,ed=false,started=false,st;
+
+// ---------- Блоки ----------
+const tools=b=>`<div class="tools"><button data-a="up">↑</button><button data-a="dn">↓</button><button data-a="del">✕</button><details><summary>цвета</summary>${Object.keys(CD).map(k=>`<label>${CL[k]} <input type="color" data-c="${k}" value="${(b.c||{})[k]||CD[k]}"></label>`).join("")}<button data-a="rst">сброс</button></details></div>`;
+const area=(b,k,r)=>`<div class="ro pre">${esc(b[k])}</div><textarea class="eo" data-k="${k}" rows="${r}">${esc(b[k])}</textarea>`;
+function stats(b){
+  const a=b.it||[],n=a.length,mx=b.mode==="max"?Math.max(1,b.max||30):Math.max(1,...a.map(x=>x.v)),R=85;
+  const pt=(j,r)=>{const g=-Math.PI/2+j*2*Math.PI/n;return[130+r*Math.cos(g),130+r*Math.sin(g)]};
+  const svg=n>2?`<svg viewBox="0 0 260 260" class="rad">${[.33,.66,1].map(f=>`<polygon class="g" points="${a.map((_,j)=>pt(j,R*f)).join(" ")}"/>`).join("")}${a.map((_,j)=>`<line class="g" x1="130" y1="130" x2="${pt(j,R)[0]}" y2="${pt(j,R)[1]}"/>`).join("")}<polygon class="p" points="${a.map((x,j)=>pt(j,R*Math.min(1,x.v/mx))).join(" ")}"/>${a.map((x,j)=>{const[p,q]=pt(j,R+16);return`<text x="${p}" y="${q}" text-anchor="middle">${esc(x.n)} ${x.v}${b.mode==="max"&&x.v>mx?"▲":""}</text>`}).join("")}</svg>`:"";
+  const rows=a.map(x=>{const k=Math.round(Math.min(1,x.v/mx)*20),m=Math.floor((x.v-10)/2),ov=b.mode==="max"&&x.v>mx;
+    return`<div class="st"><span>${esc(x.n)}</span><span class="bar ${ov?"ov":""}">${"█".repeat(k)}<u>${"░".repeat(20-k)}</u></span><b>${x.v}</b><em>d20${m<0?"":"+"}${m}</em></div>`}).join("");
+  const eds=a.map((x,j)=>`<div class="se"><input data-s="n" data-i="${j}" value="${esc(x.n)}"><button data-a="sm" data-i="${j}">−</button><input type="number" data-s="v" data-i="${j}" value="${x.v}"><button data-a="sp" data-i="${j}">+</button><button data-a="sd" data-i="${j}">✕</button></div>`).join("");
+  return`<div class="sw"><div>${svg}</div><div>${rows}</div></div><div class="eo"><div class="cfg">Шкала: <select data-s="mode"><option value="cmp"${b.mode==="cmp"?" selected":""}>сравнение (по лидеру)</option><option value="max"${b.mode==="max"?" selected":""}>максимум</option></select>${b.mode==="max"?`потолок: <input type="number" data-s="max" value="${b.max||30}">`:""}</div>${eds}<button data-a="sa">+ стат</button></div>`;
+}
+const R={
+ text:b=>area(b,"tx",4),
+ fields:b=>`<dl class="ro">${(b.tx||"").split("\n").filter(Boolean).map(l=>{const[k,...v]=l.split("|");return`<dt>${esc(k.trim())}</dt><dd>${esc(v.join("|").trim())}</dd>`}).join("")}</dl><textarea class="eo" data-k="tx" rows="8">${esc(b.tx)}</textarea>`,
+ sep:()=>`<div><span>|[ &gt; ]</span><i></i><span>[ &lt; ]|</span></div>`,
+ card:b=>`<div class="ch"><button data-a="tog">${b.o?"−":"+"}</button><h3 class="ro">${esc(b.ti)}</h3><input class="eo" data-k="ti" value="${esc(b.ti)}"></div><div class="ro">${(b.tg||"").split(",").filter(x=>x.trim()).map(x=>`<span class="tg">${esc(x.trim())}</span>`).join("")}</div><input class="eo" data-k="tg" value="${esc(b.tg)}" placeholder="теги через запятую"><div class="cb ${b.o?"":"cl"}">${area(b,"tx",4)}</div>`,
+ stats:b=>stats(b)
+};
+const bs=b=>Object.entries(b.c||{}).map(([k,v])=>`${CV[k]}:${v}`).join(";");
+function render(){
+  $("#nm").textContent=S.nm;$("#nmi").value=S.nm;$("#st").textContent=S.st;$("#sti").value=S.st;
+  $("#edb").classList.toggle("on",ed);$("#edb").textContent=ed?"Готово":"Правка";
+  $("#tabs").innerHTML=S.tabs.map((t,i)=>`<button data-tab="${i}" class="${i===ti?"on":""}">${esc(t.t)}</button>`).join("")+(ed?`<button data-a="tren">✎</button><button data-a="tdel">✕</button><button data-a="tadd">+ вкладка</button>`:"");
+  const B=S.tabs[ti].blocks,hs=B.some(b=>b.t==="stats");
+  $("#tab").innerHTML=B.map((b,i)=>`<section class="blk ${b.t}" data-b="${i}" style="${bs(b)}">${tools(b)}${R[b.t](b)}</section>`).join("")+`<div class="eo add">Добавить: ${Object.keys(NEW).filter(k=>k!=="stats"||!hs).map(k=>`<button data-a="add" data-t="${k}">${NM[k]}</button>`).join("")}</div>`;
+}
+const save=()=>{$("#sv").textContent="● сохраняю…";clearTimeout(st);st=setTimeout(()=>set(ref(db,"dossier"),JSON.parse(JSON.stringify(S))).then(()=>$("#sv").textContent="● сохранено").catch(e=>$("#sv").textContent="⚠ "+e.code),600)};
+const norm=v=>({nm:v.nm||"",st:v.st||"",tabs:Object.values(v.tabs||[]).map(t=>({...t,blocks:Object.values(t.blocks||[]).map(b=>b.it?{...b,it:Object.values(b.it)}:b)}))});
+
+// ---------- События ----------
+const blk=el=>S.tabs[ti].blocks[+el.dataset.b];
+$("#tab").addEventListener("input",e=>{const t=e.target,d=t.dataset,el=t.closest(".blk");if(!el||d.s)return;const b=blk(el);
+  if(d.c){(b.c=b.c||{})[d.c]=t.value;el.style.setProperty(CV[d.c],t.value)}else if(d.k)b[d.k]=t.value;else return;save()});
+$("#tab").addEventListener("change",e=>{const t=e.target,d=t.dataset;if(!d.s)return;const b=blk(t.closest(".blk"));
+  if(d.i===undefined)b[d.s]=d.s==="max"?Math.max(1,+t.value||30):t.value;
+  else b.it[d.i][d.s]=d.s==="v"?Math.max(0,Math.round(+t.value)||0):t.value;save();render()});
+document.addEventListener("input",e=>{const h=e.target.dataset.h;if(h){S[h]=e.target.value;save()}});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-a],[data-tab]");if(!t)return;
+  if(t.dataset.tab!==undefined){ti=+t.dataset.tab;render();return}
+  const a=t.dataset.a,el=t.closest(".blk"),B=S.tabs[ti].blocks,i=el?+el.dataset.b:-1,b=B[i],j=+t.dataset.i;
+  switch(a){
+   case"up":if(i>0)[B[i-1],B[i]]=[B[i],B[i-1]];break;
+   case"dn":if(i<B.length-1)[B[i+1],B[i]]=[B[i],B[i+1]];break;
+   case"del":B.splice(i,1);break;
+   case"tog":b.o=!b.o;if(!ed){render();return}break;
+   case"rst":delete b.c;break;
+   case"sm":b.it[j].v=Math.max(0,b.it[j].v-1);break;
+   case"sp":b.it[j].v++;break;
+   case"sd":b.it.splice(j,1);break;
+   case"sa":b.it.push({n:"Новый",v:10});break;
+   case"add":B.push(NEW[t.dataset.t]());break;
+   case"tadd":{const n=prompt("Название вкладки");if(!n)return;S.tabs.push({t:n,blocks:[]});ti=S.tabs.length-1;break}
+   case"tren":{const n=prompt("Новое название",S.tabs[ti].t);if(!n)return;S.tabs[ti].t=n;break}
+   case"tdel":if(S.tabs.length>1&&confirm("Удалить вкладку?")){S.tabs.splice(ti,1);ti=0;break}return;
+   case"ed":ed=!ed;document.body.classList.toggle("ed",ed);render();return;
+   case"out":signOut(auth);return}
+  save();render()});
+
+// ---------- Вход ----------
+$("#lf").onsubmit=async e=>{e.preventDefault();$("#err").textContent="";try{await signInWithEmailAndPassword(auth,EMAIL,$("#pw").value)}catch(x){$("#err").textContent="Неверный пароль"}};
+onAuthStateChanged(auth,u=>{
+  $("#login").hidden=!!u;$("#app").hidden=!u;if(!u)return;render();
+  if(started)return;started=true;
+  onValue(ref(db,"dossier"),s=>{const v=s.val();if(v&&!ed){S=norm(v);ti=Math.min(ti,S.tabs.length-1);render()}});
+  reduce?$("#boot").classList.add("gone"):requestAnimationFrame(splash)});
+
+// ---------- Заставка: дефрагментация → логотип NT → глюк «Срыв + RGB» → D.I.V. ----------
+const A=["███░███░░░░██░░░░","░██░████░░░██░░░░","░░█░██░██░░██░█░░","░░░░██░░██░██░██░","░░░░██░░░████░███"];
+const B2=["███░█████░░░░░","░██░██░░██░░░░","░░█░██░░██░█░░","░░░░██░░██░██░","░░░░█████░░███"];
+function splash(){
+  const cv=$("#cv"),x=cv.getContext("2d"),dpr=devicePixelRatio||1,W=cv.width=cv.clientWidth*dpr,H=cv.height=cv.clientHeight*dpr;
+  const CY="#29d3ff",RD="#ff4d5e",SH="█░",GL="01▒░▓<>/\\|#",TX="N A N O T R A S E N · NT-OS v4.2.1";
+  const cs=Math.min(W*.82/34,H*.45/10),s=2*cs,gx=(W-34*cs)/2,gy=H*.18,gB=(W-14*s)/2;
+  const rnd=a=>a[Math.floor(Math.random()*a.length)],q=(i,k)=>{const v=Math.sin(i*127.1+k*311.7)*43758.5453;return v-Math.floor(v)};
+  const K=[[0,0],[.6,.12],[.9,.12],[1.7,.5],[2,.5],[2.8,.86],[3.1,.86],[3.8,1]];
+  const pr=t=>{for(let i=1;i<K.length;i++)if(t<=K[i][0]){const[a,pa]=K[i-1],[b,pb]=K[i];return pa+(pb-pa)*(t-a)/(b-a)}return 1};
+  const tile=(ch,X,Y,z)=>{if(ch==="█")x.fillRect(X+z*.05,Y+z*.05,z*.9,z*.9);else for(let i=0;i<2;i++)for(let j=0;j<2;j++)x.fillRect(X+z*(.12+i*.46),Y+z*(.12+j*.46),z*.26,z*.26)};
+  const cells=(art,g)=>art.flatMap((row,r)=>[...row].map((ch,c)=>({ch,c,r,X:g+c*s,Y:gy+r*s})));
+  const CA=cells(A,gx),CB=cells(B2,gB),Tg=6.3,D=1.6;
+  let rs=[0,0,0,0,0],last=0,done=false;const t0=performance.now();
+  const end=()=>{done=true;$("#boot").classList.add("gone")};$("#boot").onclick=end;
+  const scr=t=>[...t].map(ch=>Math.random()<.35&&ch!==" "?rnd(GL):ch).join("");
+  function frame(now){
+    if(done)return;const t=(now-t0)/1e3;x.clearRect(0,0,W,H);x.shadowColor=CY;x.shadowBlur=5*dpr;x.globalCompositeOperation="source-over";x.globalAlpha=1;
+    let cap="";
+    if(t<5.5){const u=Math.max(0,Math.min(1,(t-4.3)/1.2)),v=u*1.15,p=pr(t);
+      for(let i=0;i<340;i++){const c=i%34,r=i/34|0,X=gx+c*cs,Y=gy+r*cs;
+        if(u>0){x.globalAlpha=1;if(A[r>>1][c>>1]==="█"){if(u<1){x.fillStyle=CY;tile("█",X,Y,cs)}continue}const k=q(i,4);if(k<v-.15)continue;x.fillStyle=k<v?RD:CY;tile("█",X,Y,cs);continue}
+        const k=q(i,3),on=k<p,er=!on&&k<p+.04&&q(i,9)<.35&&Math.floor(t*10)%2;x.globalAlpha=on?1:.3;x.fillStyle=er?RD:CY;tile(on||er?"█":"░",X,Y,cs)}
+      if(u>0)CA.forEach(c=>{if(c.ch==="░"){x.globalAlpha=.5*u;x.fillStyle=CY;tile("░",c.X,c.Y,s)}else if(u>=1){x.globalAlpha=1;x.fillStyle=CY;tile("█",c.X,c.Y,s)}});
+      cap=u===0?"ПРОВЕРКА ПАМЯТИ "+Math.round(p*100)+"%":"ПЕРЕСБОРКА…";
+    }else{
+      const g=Math.max(0,Math.min(1,(t-Tg)/D)),gl=g>0&&g<1,e=gl?(g<.5?g*2:(1-g)*2):0,art=g<.5?CA:CB;
+      if(now-last>90){rs=rs.map(()=>Math.random()<.4?(Math.random()-.5)*2:0);last=now}
+      const k=e*s*.7,P=gl?[[-k,RD,.85,1],[k,"#00e5ff",.85,-.6],[0,"#fff",.55,.3]]:[[0,CY,1,0]];
+      if(gl)x.globalCompositeOperation="lighter";
+      for(const[dx,col,al,m]of P)for(const c of art){x.fillStyle=col;x.globalAlpha=al;let dy=0;if(e>.6&&Math.random()<.15)dy=(Math.random()-.5)*s*.3;tile(c.ch,c.X+dx+(gl?rs[c.r]*s*3*e*m:0),c.Y+dy,s)}
+      cap=t<Tg?TX:gl?scr(TX):"D.I.V. // DEVAIT — ДОСТУП РАЗРЕШЁН".slice(0,Math.floor((t-Tg-D)*30));
+      if(t>Tg+D+2.2){end();return}
+    }
+    x.globalCompositeOperation="source-over";x.globalAlpha=1;x.shadowBlur=0;x.font=`${Math.max(11,s*.3)}px "Courier New",monospace`;x.textAlign="center";x.textBaseline="middle";x.fillStyle="#3f8aa8";x.fillText(cap,W/2,gy+10*cs+s*.9);
+    requestAnimationFrame(frame)}
+  requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
