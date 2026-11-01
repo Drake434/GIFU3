@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MK2 // ЛИЧНОЕ ДЕЛО</title>
+<style>
+:root{--c:#62F1F5;--r:#ff4444;--g:#0d0d0d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--g);color:var(--c);font:13px/1.5 'Courier New',monospace;min-height:100vh}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;background:repeating-linear-gradient(transparent 0 3px,rgba(0,0,0,.13) 3px 4px)}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:8px 14px;border-bottom:1px solid #62F1F544;background:#0d0d0df2;position:sticky;top:0;z-index:20}
+header b{letter-spacing:3px;text-shadow:0 0 8px var(--c)}
+nav{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+button{background:transparent;border:1px solid #62F1F566;border-radius:3px;color:var(--c);font:inherit;font-size:11px;padding:4px 10px;cursor:pointer;letter-spacing:1px}
+button:hover,button.on{background:#62F1F522;box-shadow:0 0 8px #62F1F544}
+button:focus-visible,.f:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+main{padding:16px;max-width:1100px;margin:auto}
+h2,h3{font-weight:normal;letter-spacing:2px;text-shadow:0 0 8px #62F1F566}
+.card{border:1px solid #62F1F544;border-radius:6px;padding:12px;background:#62F1F506;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.row{margin:6px 0}
+.k{opacity:.5;font-size:10px;letter-spacing:2px;display:block}
+.f{display:inline-block;min-width:40px;white-space:pre-wrap;color:#d8fbfc;outline:none}
+.f.w{display:block}
+.f:empty::before{content:attr(data-d);opacity:.3}
+body.on .f[contenteditable]{border-bottom:1px dashed #62F1F588;background:#62F1F510}
+.ed{display:none}
+body.on .ed{display:inline-block}
+#ebtn.on,body.on #ebtn{border-color:var(--r);color:var(--r)}
+.sw{overflow-x:auto}
+.stage{position:relative;min-width:720px;aspect-ratio:780/505;border:1px solid #62F1F544;border-radius:6px;background:url(../h.png),url(h.png);background-size:131.3% auto,131.3% auto;background-position:49.2% 59.7%,49.2% 59.7%;background-repeat:no-repeat;background-color:#05080c}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.slot{position:absolute;width:22%;height:16%;border:1px solid #62F1F577;border-left:4px solid var(--q,#62F1F5);background:#0d0d0dd9;padding:4px 8px;cursor:pointer;overflow:hidden;font-size:11px}
+.slot:hover{box-shadow:0 0 10px #62F1F566}
+.slot.sub{border-style:dashed;border-left-style:solid}
+.slot.empty{opacity:.65}
+.slot.bad{border-color:var(--r);--q:var(--r)}
+.mb{position:fixed;inset:0;background:#000b;z-index:40;display:flex;align-items:center;justify-content:center;padding:10px}
+.md{background:var(--g);border:1px solid var(--c);border-radius:8px;padding:16px;width:min(520px,100%);max-height:90vh;overflow:auto;box-shadow:0 0 30px #62F1F533}
+.board{position:relative;height:560px;border:1px solid #62F1F544;border-radius:6px;overflow:hidden;touch-action:none;background:linear-gradient(#62F1F50a 1px,transparent 1px) 0 0/30px 30px,linear-gradient(90deg,#62F1F50a 1px,transparent 1px) 0 0/30px 30px}
+.board svg{position:absolute;inset:0;width:100%;height:100%}
+.node{position:absolute;transform:translate(-50%,-50%);border:1px solid var(--rc);background:var(--g);padding:4px 10px;border-radius:4px;cursor:pointer;user-select:none;z-index:2;text-align:center;max-width:140px}
+.node.sel{box-shadow:0 0 14px var(--rc)}
+.lb{position:absolute;transform:translate(-50%,-50%);font-size:10px;background:var(--g);z-index:1;padding:0 3px}
+.rec{display:flex;gap:12px;padding:6px 10px;border:1px solid #62F1F533;margin:4px 0;cursor:pointer}
+.rec:hover{background:#62F1F512}
+.ln{display:flex;gap:8px;margin:4px 0;align-items:baseline}
+.ln .t{opacity:.6}
+hr{border:0;border-top:1px dashed #62F1F544;margin:8px 0}
+</style>
+</head>
+<body>
+<header><b>MK2 // ЛИЧНОЕ ДЕЛО</b><nav id="nav"></nav><button id="ebtn">ВОЙТИ В РЕДАКТОР</button></header>
+<main id="app">ЗАГРУЗКА…</main>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {getDatabase,ref,onValue,set} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const PASS='MK2'; // ← поменяй пароль редактора здесь
+const db=getDatabase(initializeApp({apiKey:"AIzaSyBGh46wWig5a14tIG79aMC2fvy9KkBwlrM",authDomain:"farid-9ae00.firebaseapp.com",databaseURL:"https://farid-9ae00-default-rtdb.europe-west1.firebasedatabase.app",projectId:"farid-9ae00"}));
+const R=ref(db,'MK2');
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const QC=['#62F1F5','#3b82f6','#a855f7','#22c55e','#f59e0b'],ST=['УСТАНОВЛЕН','ПОВРЕЖДЁН','СНЯТ'],RL=['НЕЙТРАЛ','СОЮЗНИК','ОПАСЕН'],RC=['#62F1F5','#22c55e','#ff4444'];
+
+let D=null,edit=false,tab='head',modal=null,rec=null,sel=null,linkFrom=null,drag=null;
+
+const gp=p=>p.split('.').reduce((o,k)=>o==null?o:o[k],D);
+const sp=(p,v)=>{const a=p.split('.'),l=a.pop();let o=D;for(const k of a){o[k]??={};o=o[k]}o[l]=v};
+const F=(p,d='',c='')=>`<span class="f ${c}" data-p="${p}" data-d="${d}"${edit?' contenteditable="true"':''}>${esc(gp(p))}</span>`;
+const save=()=>{if(edit)set(R,JSON.parse(JSON.stringify(D))).catch(e=>alert('Ошибка сохранения: '+e.message))};
+
+const dflt=()=>({
+  h:{name:'ИМЯ',sn:'',type:'Андроид',status:'',work:'',contract:'Персональный договор',fears:'',ints:''},
+  mods:{},
+  comp:[{name:'Двуногая турель',look:'',abil:'',made:'',helper:''},{name:'Синтетик-зверь',look:'',abil:'',made:'',helper:''}],
+  nodes:[],links:[],
+  recs:Array.from({length:15},(_,i)=>({title:'ЗАПИСЬ №'+String(i+1).padStart(2,'0'),date:'',st:'НЕ ЗАПОЛНЕНА',lines:[]}))
+});
+const fix=d=>{d.h??={};d.mods??={};d.comp=d.comp||[];d.nodes=d.nodes||[];d.links=d.links||[];d.recs=d.recs||[];d.recs.forEach(r=>r.lines??=[]);return d};
+
+/* ---------- слоты модулей: [id, подпись, колонка, ряд, якорь x, якорь y, подмодуль] ---------- */
+const S=[
+ ['head','ГОЛОВА',0,0,392,55],['torso','КОРПУС',0,1,392,160],['larm','ЛЕВАЯ РУКА',0,2,325,160],['lhand','ЛЕВАЯ КИСТЬ',0,3,280,240],['lleg','ЛЕВАЯ НОГА',0,4,360,390],
+ ['visor','ВИЗОР',1,0,398,50,1],['power','ИСТОЧНИК ПИТАНИЯ',1,1,398,175,1],['rarm','ПРАВАЯ РУКА',1,2,465,160],['rhand','ПРАВАЯ КИСТЬ',1,3,512,240],['rleg','ПРАВАЯ НОГА',1,4,445,390]
+];
+
+/* ---------- ШАПКА ---------- */
+function vHead(){
+  const f=[['sn','СЕРИЙНЫЙ НОМЕР'],['type','ТИП'],['status','СТАТУС'],['work','МЕСТО РАБОТЫ'],['contract','ДОГОВОР'],['fears','СТРАХИ'],['ints','ИНТЕРЕСЫ']];
+  return `<div class="card"><h2 style="font-size:22px">${F('h.name','имя')}</h2><div class="grid" style="margin-top:8px">${f.map(([k,l])=>`<div class="row"><span class="k">${l}</span>${F('h.'+k,'—','w')}</div>`).join('')}</div></div>`;
+}
+
+/* ---------- МОДУЛИ ---------- */
+function vMods(){
+  let ln='',sl='';
+  for(const [id,lb,col,row,ax,ay,sub] of S){
+    const m=D.mods[id],has=m&&m.name,y=(3+row*18+8)/100*505,x=col?585:195;
+    ln+=`<line x1="${x}" y1="${y}" x2="${ax}" y2="${ay}" stroke="#62F1F5" stroke-opacity=".5"/><circle cx="${ax}" cy="${ay}" r="3" fill="#62F1F5"/>`;
+    sl+=`<div class="slot${sub?' sub':''}${has?'':' empty'}${m&&m.state==1?' bad':''}" data-a="slot" data-id="${id}" style="left:${col?75:3}%;top:${3+row*18}%;--q:${QC[m?.q|0]}"><span class="k">${lb}${sub?' (ПОДМОДУЛЬ)':''}</span>${has?`<b>${esc(m.name)}</b>${m.chip?.name?`<br><span style="opacity:.6">▮ ${esc(m.chip.name)}</span>`:''}`:`<b>${edit?'+':'—'}</b>`}</div>`;
+  }
+  return `<div class="sw"><div class="stage"><svg viewBox="0 0 780 505" preserveAspectRatio="none">${ln}</svg>${sl}</div></div>`;
+}
+function vModal(){
+  if(!modal||tab!='mods')return'';
+  const s=S.find(x=>x[0]==modal),m=D.mods[modal]||{},p=`mods.${modal}.`;
+  return `<div class="mb"><div class="md"><h3>${s[1]}${s[6]?' (ПОДМОДУЛЬ)':''}</h3><hr>
+  <div class="row"><span class="k">МОДУЛЬ</span>${F(p+'name','название','w')}</div>
+  <div class="row"><span class="k">ОПИСАНИЕ</span>${F(p+'desc','…','w')}</div>
+  <div class="row"><span class="k">ПЛЮСЫ</span>${F(p+'pros','…','w')}</div>
+  <div class="row"><span class="k">МИНУСЫ</span>${F(p+'cons','…','w')}</div>
+  <div class="row"><span class="k">СОСТОЯНИЕ / КАЧЕСТВО</span>${ST[m.state|0]} <button class="ed" data-a="cyc" data-k="state" data-m="3">СМЕНИТЬ</button> &nbsp; <span style="color:${QC[m.q|0]}">■</span> <button class="ed" data-a="cyc" data-k="q" data-m="5">СМЕНИТЬ</button></div>
+  ${s[6]?'':`<div class="card"><span class="k">▮ ФЛЕШКА</span>${F(p+'chip.name','пусто','w')}${F(p+'chip.desc','что даёт','w')}</div>`}
+  <button data-a="close">ЗАКРЫТЬ</button> <button class="ed" data-a="clear">ОЧИСТИТЬ СЛОТ</button></div></div>`;
+}
+
+/* ---------- СПУТНИКИ ---------- */
+function vComp(){
+  const f=[['look','ВНЕШНИЙ ВИД'],['abil','СПОСОБНОСТИ / ВООРУЖЕНИЕ'],['made','ИЗ КАКИХ ВИДОВ СОБРАН'],['helper','КТО ПОМОГ СОЗДАТЬ']];
+  return `<div class="grid">${D.comp.map((c,i)=>{const p=`comp.${i}.`;return `<div class="card"><h3>${F(p+'name','название')}</h3><hr>${f.map(([k,l])=>`<div class="row"><span class="k">${l}</span>${F(p+k,'…','w')}</div>`).join('')}<button class="ed" data-a="delcomp" data-i="${i}">УДАЛИТЬ</button></div>`}).join('')}</div><button class="ed" data-a="addcomp">+ СПУТНИК</button>`;
+}
+
+/* ---------- СВЯЗИ ---------- */
+const pos=id=>{if(id=='c')return[.5,.5];const n=D.nodes.find(n=>n.id==id);return n?[n.x,n.y]:[.5,.5]};
+const lines=()=>D.links.map(l=>{const a=pos(l.a),b=pos(l.b);return `<line x1="${a[0]*100}" y1="${a[1]*100}" x2="${b[0]*100}" y2="${b[1]*100}" stroke="#62F1F5" stroke-opacity=".6" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`}).join('');
+function vNet(){
+  const lb=D.links.map((l,i)=>{const a=pos(l.a),b=pos(l.b);return `<div class="lb" style="left:${(a[0]+b[0])*50}%;top:${(a[1]+b[1])*50}%">${F(`links.${i}.l`,edit?'нить':'')}</div>`}).join('');
+  const nd=[{id:'c',name:D.h.name,x:.5,y:.5,r:0},...D.nodes].map(n=>`<div class="node${sel==n.id?' sel':''}" data-n="${n.id}" style="left:${n.x*100}%;top:${n.y*100}%;--rc:${RC[n.r|0]}"><b>${esc(n.name||'?')}</b></div>`).join('');
+  const s=D.nodes.find(n=>n.id==sel),i=D.nodes.indexOf(s);
+  return `<div class="row"><button class="ed" data-a="addnode">+ ПЕРСОНА</button> <button class="ed${linkFrom?' on':''}" data-a="link">${linkFrom=='p'?'ВЫБЕРИ ПЕРВЫЙ УЗЕЛ…':linkFrom?'ВЫБЕРИ ВТОРОЙ УЗЕЛ…':'СВЯЗАТЬ / РАЗВЯЗАТЬ'}</button></div>
+  <div class="board" id="board"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${lines()}</svg>${lb}${nd}</div>
+  ${s?`<div class="card" style="margin-top:12px"><h3>${F(`nodes.${i}.name`,'имя')}</h3><span class="k">ЗАМЕТКА</span>${F(`nodes.${i}.note`,'…','w')}<div class="row">${RL[s.r|0]} <button class="ed" data-a="cyc2">ОТНОШЕНИЕ</button> <button class="ed" data-a="delnode">УДАЛИТЬ</button></div></div>`:''}`;
+}
+
+/* ---------- ПРЕДЫСТОРИЯ ---------- */
+function vStory(){
+  if(rec==null)return `<div>${D.recs.map((r,i)=>`<div class="rec" data-a="rec" data-i="${i}"><b>${esc(r.title)}</b><span style="flex:1;opacity:.6">${esc(r.date)}</span><span>[${esc(r.st)}]</span></div>`).join('')}</div><button class="ed" data-a="addrec">+ ЗАПИСЬ</button>`;
+  const r=D.recs[rec],p=`recs.${rec}.`;
+  return `<button data-a="back">← К СПИСКУ</button> <button class="ed" data-a="delrec">УДАЛИТЬ ЗАПИСЬ</button>
+  <div class="card" style="margin-top:12px"><h3>▶ ${F(p+'title','название')}</h3>ДАТА: ${F(p+'date','—')} &nbsp; СТАТУС: ${F(p+'st','—')}<hr>
+  ${r.lines.map((l,j)=>`<div class="ln"><span class="t">[${F(`${p}lines.${j}.t`,'00:00')}]</span><b>${F(`${p}lines.${j}.who`,'ГОВОРЯЩИЙ')}:</b><span style="flex:1">${F(`${p}lines.${j}.x`,'реплика','w')}</span><button class="ed" data-a="delln" data-i="${j}">✕</button></div>`).join('')}
+  <button class="ed" data-a="addln">+ СТРОКА</button></div>`;
+}
+
+/* ---------- РЕНДЕР ---------- */
+const TABS=[['head','ШАПКА',vHead],['mods','МОДУЛИ',vMods],['comp','СПУТНИКИ',vComp],['net','СВЯЗИ',vNet],['story','ПРЕДЫСТОРИЯ',vStory]];
+function render(){
+  document.body.classList.toggle('on',edit);
+  $('#ebtn').textContent=edit?'ВЫЙТИ ИЗ РЕДАКТОРА':'ВОЙТИ В РЕДАКТОР';
+  $('#nav').innerHTML=TABS.map(t=>`<button class="${t[0]==tab?'on':''}" data-a="tab" data-t="${t[0]}">${t[1]}</button>`).join('');
+  $('#app').innerHTML=D?TABS.find(t=>t[0]==tab)[2]()+vModal():'ЗАГРУЗКА…';
+}
+
+/* ---------- СОБЫТИЯ ---------- */
+document.addEventListener('focusout',e=>{
+  const el=e.target.closest?.('.f[data-p]');
+  if(el&&edit){sp(el.dataset.p,el.innerText.replace(/\n$/,''));save()}
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const i=+b.dataset.i,d=b.dataset;
+  const A={
+    tab(){tab=d.t;modal=null;rec=null;sel=null;linkFrom=null},
+    slot(){modal=d.id},close(){modal=null},
+    cyc(){const m=D.mods[modal]??={};m[d.k]=((m[d.k]|0)+1)%d.m;save()},
+    clear(){delete D.mods[modal];modal=null;save()},
+    addcomp(){D.comp.push({name:'НОВЫЙ',look:'',abil:'',made:'',helper:''});save()},
+    delcomp(){if(confirm('Удалить спутника?')){D.comp.splice(i,1);save()}},
+    addnode(){const id='n'+Date.now();D.nodes.push({id,x:.15+Math.random()*.7,y:.12+Math.random()*.76,name:'НОВЫЙ',note:'',r:0});sel=id;save()},
+    link(){linkFrom=linkFrom?null:'p'},
+    cyc2(){const n=D.nodes.find(n=>n.id==sel);n.r=((n.r|0)+1)%3;save()},
+    delnode(){if(confirm('Удалить персону?')){D.nodes=D.nodes.filter(n=>n.id!=sel);D.links=D.links.filter(l=>l.a!=sel&&l.b!=sel);sel=null;save()}},
+    rec(){rec=i},back(){rec=null},
+    addrec(){D.recs.push({title:'ЗАПИСЬ №'+String(D.recs.length+1).padStart(2,'0'),date:'',st:'НЕ ЗАПОЛНЕНА',lines:[]});save()},
+    delrec(){if(confirm('Удалить запись?')){D.recs.splice(rec,1);rec=null;save()}},
+    addln(){D.recs[rec].lines.push({t:'',who:'',x:''});save()},
+    delln(){D.recs[rec].lines.splice(i,1);save()}
+  };
+  A[d.a]?.();render();
+});
+
+/* перетаскивание и выбор узлов на доске связей */
+document.addEventListener('pointerdown',e=>{
+  const n=e.target.closest('.node');
+  if(!n||e.target.closest('[contenteditable]'))return;
+  drag={id:n.dataset.n,x:e.clientX,y:e.clientY,mv:0,el:n};
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>4)drag.mv=1;
+  if(drag.mv&&edit&&drag.id!='c'&&!linkFrom){
+    const b=$('#board').getBoundingClientRect(),n=D.nodes.find(n=>n.id==drag.id);
+    n.x=Math.min(.97,Math.max(.03,(e.clientX-b.left)/b.width));
+    n.y=Math.min(.97,Math.max(.03,(e.clientY-b.top)/b.height));
+    drag.el.style.left=n.x*100+'%';drag.el.style.top=n.y*100+'%';
+    $('#board svg').innerHTML=lines();
+  }
+});
+document.addEventListener('pointerup',()=>{
+  if(!drag)return;
+  const d=drag;drag=null;
+  if(d.mv&&edit&&d.id!='c'&&!linkFrom){save();render();return}
+  if(linkFrom=='p')linkFrom=d.id;
+  else if(linkFrom){
+    if(linkFrom!=d.id){
+      const i=D.links.findIndex(l=>(l.a==linkFrom&&l.b==d.id)||(l.a==d.id&&l.b==linkFrom));
+      i>=0?D.links.splice(i,1):D.links.push({a:linkFrom,b:d.id,l:''});
+      save();
+    }
+    linkFrom=null;
+  }else sel=d.id=='c'?null:d.id;
+  render();
+});
+
+$('#ebtn').onclick=()=>{
+  if(edit){edit=false;linkFrom=null}
+  else{if(prompt('Пароль редактора:')!==PASS)return;edit=true}
+  render();
+};
+
+onValue(R,s=>{
+  if(edit&&D)return; // пока идёт редактирование, локальные данные главные
+  D=fix(s.val()||dflt());render();
+},e=>{$('#app').textContent='Ошибка Firebase: '+e.message});
+</script>
+</body>
+</html>
